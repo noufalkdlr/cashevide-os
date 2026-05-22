@@ -1,0 +1,8 @@
+# Ignore everything in the directory by default
+*
+
+# Do not ignore the setup.sh script
+!setup.sh
+
+# Do not ignore the .gitignore file itself
+!.gitignore
