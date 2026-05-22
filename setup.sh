@@ -165,14 +165,77 @@ fi
 # ============================================
 echo "Purging default Ubuntu and GNOME wallpapers cleanly..."
 
-# Remove default gnome folder
-rm -rf /usr/share/backgrounds/gnome
+# Ensure our custom cashevide backgrounds directory exists
+mkdir -p /usr/share/backgrounds/cashevide
 
-# Delete both regular files (-type f) and symlinks (-type l) inside the directory
-find /usr/share/backgrounds/ -maxdepth 1 \( -type f -o -type l \) -delete
+# Delete everything inside backgrounds EXCEPT the 'cashevide' folder itself
+# This keeps your pre-copied wallpapers inside cashevide/ perfectly safe!
+find /usr/share/backgrounds/ -maxdepth 1 ! -path /usr/share/backgrounds/ ! -name "cashevide" -exec rm -rf {} +
 
-# Remove wallpaper XML properties to clean up the Settings menu
+# Remove old wallpaper XML properties to clean up the Settings menu
 rm -rf /usr/share/gnome-background-properties/*
+
+echo "Creating Cashevide OS wallpaper properties for Settings menu..."
+mkdir -p /usr/share/gnome-background-properties
+
+# Start writing the base XML structure
+cat <<EOF >/usr/share/gnome-background-properties/cashevide-wallpapers.xml
+<?xml version="1.0"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+EOF
+
+# Bulletproof loop that handles both lower and uppercase extensions (.jpg, .JPG, .png, .PNG etc.)
+for img in /usr/share/backgrounds/cashevide/*; do
+  # Ensure it is a file
+  [ -f "$img" ] || continue
+
+  filename=$(basename "$img")
+  clean_name="${filename%.*}"
+
+  # Convert extension to lowercase safely for verification
+  ext=$(echo "${filename##*.}" | tr '[:upper:]' '[:lower:]')
+
+  case "$ext" in
+  jpg | jpeg | png | webp | svg)
+    # Format names nicely for the Settings UI (e.g., cool-dark.png -> Cool Dark)
+    display_name=$(echo "$clean_name" | sed 's/[-_]/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
+
+    # Append entries cleanly to XML
+    cat <<EOF >>/usr/share/gnome-background-properties/cashevide-wallpapers.xml
+  <wallpaper deleted="false">
+    <name>Cashevide $display_name</name>
+    <filename>$img</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+EOF
+    ;;
+  esac
+done
+
+# Close the XML structure properly
+echo "</wallpapers>" >>/usr/share/gnome-background-properties/cashevide-wallpapers.xml
+
+echo "Forcing cashevide/background.jpg as the hardcoded system default..."
+# Force your main image as the default wallpaper for both Light and Dark modes
+cat <<EOF >/usr/share/glib-2.0/schemas/99_cashevide_wallpaper.gschema.override
+[org.gnome.desktop.background]
+picture-uri='file:///usr/share/backgrounds/cashevide/background.jpg'
+picture-uri-dark='file:///usr/share/backgrounds/cashevide/background.jpg'
+EOF
+
+# Ensure proper system permissions so GNOME can read everything without fail
+chmod 755 /usr/share/backgrounds/cashevide
+chmod 644 /usr/share/backgrounds/cashevide/* 2>/dev/null || true
+chmod 644 /usr/share/gnome-background-properties/cashevide-wallpapers.xml
+
+# Compile the new schema override into the system
+glib-compile-schemas /usr/share/glib-2.0/schemas/
+
+echo "Wallpaper generation and system-wide default lock completed successfully!"
 
 # ================================================
 # 8. SYSTEM-WIDE DCONF CUSTOMIZATIONS (PRO METHOD)
