@@ -148,7 +148,7 @@ apt autoremove --purge -y
 # 6. SYSTEM BRANDING
 # ===================
 
-# Configure os-release branding for Cashevide OS
+# 1. Configure os-release branding for Cashevide OS
 echo "Configuring os-release branding for Cashevide OS..."
 if [ -f /etc/os-release ]; then
   sed -i 's/^NAME=.*/NAME="Cashevide OS"/' /etc/os-release
@@ -159,6 +159,25 @@ if [ -f /etc/os-release ]; then
 else
   echo "Error: /etc/os-release file not found!"
 fi
+
+# 2. Configure lsb-release branding (Crucial for apps and fetch tools)
+echo "Configuring lsb-release branding..."
+if [ -f /etc/lsb-release ]; then
+  sed -i 's/^DISTRIB_ID=.*/DISTRIB_ID="CashevideOS"/' /etc/lsb-release
+  sed -i 's/^DISTRIB_RELEASE=.*/DISTRIB_RELEASE="1.0"/' /etc/lsb-release
+  sed -i 's/^DISTRIB_CODENAME=.*/DISTRIB_CODENAME="cashevide"/' /etc/lsb-release
+  sed -i 's/^DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION="Cashevide OS 1.0"/' /etc/lsb-release
+  echo "lsb-release successfully updated!"
+fi
+
+# 3. Update TTY Greeting Message (Terminal Welcome text)
+echo "Updating TTY login messages..."
+echo "Cashevide OS 1.0 \n \l" >/etc/issue
+echo "Cashevide OS 1.0" >/etc/issue.net
+
+# 4. Trigger GRUB update to dynamically pull the new name from os-release
+echo "Updating GRUB bootloader menu..."
+update-grub || true
 
 # ============================================
 # 7. PURGE OLD WALLPAPERS & PROPERTIES CLEANUP
