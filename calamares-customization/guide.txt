@@ -1,0 +1,6 @@
+1. Logos, Slideshow and slideshow settings
+Path: /usr/lib/penguins-eggs/addons/eggs/theme/calamares/branding/
+
+
+2. OS Names, version & Sidebar Colors
+Path: /usr/lib/penguins-eggs/dist/classes/incubation/branding.js

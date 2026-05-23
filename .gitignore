@@ -1,8 +1,2 @@
-# Ignore everything in the directory by default
-*
-
-# Do not ignore the setup.sh script
-!setup.sh
-
-# Do not ignore the .gitignore file itself
-!.gitignore
+# Ignore all ISO files anywhere in the project
+*.iso
