@@ -179,6 +179,36 @@ echo "Cashevide OS 1.0" >/etc/issue.net
 echo "Updating GRUB bootloader menu..."
 update-grub || true
 
+# 5. Configure Penguins-Eggs Calamares templates to keep custom GRUB distributor name
+echo "Configuring Penguins-Eggs Calamares templates to keep custom GRUB distributor name..."
+
+# Find all grubcfg.yaml or grubcfg.conf template files inside penguins-eggs system paths dynamically
+EGGS_TEMPLATES=$(find /etc/penguins-eggs.d /usr/share/penguins-eggs /usr/lib/penguins-eggs \( -name "grubcfg.yaml" -o -name "grubcfg.conf" \) 2>/dev/null)
+
+for template in $EGGS_TEMPLATES; do
+  if [ -f "$template" ]; then
+    # If keep_distributor line exists, change it to true; otherwise, append it
+    if grep -q "^keep_distributor" "$template"; then
+      sed -i 's/^keep_distributor:.*/keep_distributor: true/' "$template"
+    else
+      echo "keep_distributor: true" >>"$template"
+    fi
+    echo "Successfully updated template: $template"
+  fi
+done
+
+# Also update the active host grubcfg.yaml/conf if it exists in the live calamares directory
+for host_cfg in /etc/calamares/modules/grubcfg.yaml /etc/calamares/modules/grubcfg.conf; do
+  if [ -f "$host_cfg" ]; then
+    if grep -q "^keep_distributor" "$host_cfg"; then
+      sed -i 's/^keep_distributor:.*/keep_distributor: true/' "$host_cfg"
+    else
+      echo "keep_distributor: true" >>"$host_cfg"
+    fi
+    echo "Current host $(basename "$host_cfg") successfully updated!"
+  fi
+done
+
 # ============================================
 # 7. PURGE OLD WALLPAPERS & PROPERTIES CLEANUP
 # ============================================
