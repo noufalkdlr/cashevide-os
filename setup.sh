@@ -138,7 +138,7 @@ apt update -y
 
 echo "Installing essential CLI tools..."
 # Install Vim text editor safely here
-apt install vim -y
+apt install vim zsh zsh-autosuggestions zsh-syntax-highlighting zoxide fastfetch gh neovim -y
 
 # Clean up unneeded packages and dependencies after all installations
 echo "Cleaning up unneeded packages and dependencies..."
